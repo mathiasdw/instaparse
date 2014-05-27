@@ -17,7 +17,7 @@
   (:require [instaparse.reduction :as red])
   
   ;; Two of the public combinators are needed.
-  (:require [instaparse.combinators-source :refer [Epsilon nt]])
+  (:require [instaparse.combinators-source :refer [Epsilon nt string]])
   
   ;; Need a way to convert parsers into strings for printing and error messages.
   (:require [instaparse.print :as print])
@@ -28,15 +28,15 @@
   
   )
     
-(def DEBUG false)
-(def PRINT false)
+(def DEBUG true)
+(def PRINT true)
 (defmacro debug [& body]
   (when DEBUG
     `(do ~@body)))
 (defmacro dprintln [& body]  
   (when PRINT `(println ~@body)))
 (defmacro dpprint [& body]  
-  (when PRINT `(pprint ~@body)))
+  (when PRINT `(print ~@body)))
 
 
 (debug (def stats (atom {})))
@@ -47,7 +47,7 @@
   (get grammar p p))
 
 (declare alt-parse cat-parse string-parse epsilon-parse non-terminal-parse
-         opt-parse plus-parse star-parse regexp-parse lookahead-parse
+         opt-parse plus-parse star-parse regexp-parse string-set-parse lookahead-parse
          rep-parse negative-lookahead-parse ordered-alt-parse
          string-case-insensitive-parse)
 (defn -parse [parser index tramp]
@@ -64,13 +64,14 @@
     :rep (rep-parse parser index tramp)
     :star (star-parse parser index tramp)
     :regexp (regexp-parse parser index tramp)
+    :string-set (string-set-parse parser index tramp)
     :look (lookahead-parse parser index tramp)
     :neg (negative-lookahead-parse parser index tramp)
     :ord (ordered-alt-parse parser index tramp)))
 
 (declare alt-full-parse cat-full-parse string-full-parse epsilon-full-parse 
          non-terminal-full-parse opt-full-parse plus-full-parse star-full-parse
-         rep-full-parse regexp-full-parse lookahead-full-parse ordered-alt-full-parse
+         rep-full-parse regexp-full-parse string-set-full-parse lookahead-full-parse ordered-alt-full-parse
          string-case-insensitive-full-parse)
 (defn -full-parse [parser index tramp]
   (dprintln "-full-parse" index (:tag parser))
@@ -86,6 +87,7 @@
     :rep (rep-full-parse parser index tramp)
     :star (star-full-parse parser index tramp)
     :regexp (regexp-full-parse parser index tramp)
+    :string-set (string-set-full-parse parser index tramp)
     :look (lookahead-full-parse parser index tramp)
     :neg (negative-lookahead-parse parser index tramp)
     :ord (ordered-alt-full-parse parser index tramp)))
@@ -526,6 +528,7 @@
       (fail tramp [index this] index
             {:tag :regexp :expecting regexp}))))
 
+
 (defn regexp-full-parse
   [this index tramp]
   (let [regexp (:regexp this)
@@ -537,7 +540,36 @@
       (success tramp [index this] match (count text)))
       (fail tramp [index this] index
             {:tag :regexp :expecting regexp :full true})))
-        
+
+(defn string-set-parse
+  "For each of the set items that start at the index in the input, push a string parser"
+  [this index tramp]
+  (let [ss (:string-set this)
+        text (:text tramp)
+        prefix-strings (map #(subs text index %1) (range (inc index) (inc (count text)))) 
+        prefix-matches (filter #(ss %1) prefix-strings)]
+    (if (empty? prefix-matches)
+      (fail tramp [index this] index
+            {:tag :string-set :expecting "THENAMEOFTHESET"})
+      (:else 
+        (doseq [ps prefix-matches]
+          (push-listener tramp [index (string ps)] (NodeListener [index this] tramp)))))))
+
+(defn string-set-full-parse
+  "For each of the set items that start at the index in the input, push a string parser"
+  [this index tramp]
+  (let [ss (:string-set this)
+        text (:text tramp)
+        prefix-strings (map #(subs text index %1) (range (inc index) (inc (count text)))) 
+        prefix-matches (filter #(ss %1) prefix-strings)]
+    (if (empty? prefix-matches)
+      (fail tramp [index this] index
+            {:tag :string-set :expecting "THENAMEOFTHESET" :full true})
+      (:else 
+        (doseq [ps prefix-matches]
+          (push-full-listener tramp [index (string ps)] (NodeListener [index this] tramp)))))))
+
+
 (let [empty-cat-result afs/EMPTY]
 	(defn cat-parse
 	  [this index tramp]

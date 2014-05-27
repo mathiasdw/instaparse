@@ -73,6 +73,11 @@
   [s] 
   {:tag :nt :keyword s})
 
+(defn string-set
+  "Create a specialized parser to handle sets of terminals from a set of strings"
+  [ss]
+  {:tag :string-set :string-set ss})
+
 (defn look "Lookahead, i.e., &parser" 
   [parser] 
   {:tag :look :parser parser}) 
@@ -146,7 +151,7 @@
     :ord (assoc parser 
                 :parser1 (auto-whitespace-parser (:parser1 parser) ws-parser)
                 :parser2 (auto-whitespace-parser (:parser2 parser) ws-parser))
-    (:string :string-ci :regexp) 
+    (:string :string-ci :regexp :string-set) 
     ; If the string/regexp has a reduction associated with it,
     ; we need to "lift" that reduction out to the (cat whitespace string)
     ; parser that is being created.

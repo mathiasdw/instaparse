@@ -53,6 +53,7 @@
         :string (with-out-str (pr (:string p)))
         :string-ci (with-out-str (pr (:string p)))
         :regexp (regexp->str (:regexp p))
+        :string-set (str (:string-set p))
         :nt (subs (str (:keyword p)) 1)
         :look (str "&" (paren-for-compound hidden? parser))
         :neg (str "!" (paren-for-compound hidden? parser))))))

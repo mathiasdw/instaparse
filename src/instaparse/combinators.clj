@@ -20,6 +20,7 @@
 (defclone string-ci c/string-ci)
 (defclone regexp c/regexp)
 (defclone nt c/nt)
+(defclone string-set c/string-set)
 (defclone look c/look)
 (defclone neg c/neg)
 (defclone hide c/hide)

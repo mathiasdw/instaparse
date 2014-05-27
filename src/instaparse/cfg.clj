@@ -227,7 +227,7 @@
   [parser]
   (case (:tag parser)
     :nt [(:keyword parser)]
-    (:string :string-ci :regexp :epsilon) []
+    (:string :string-ci :regexp :epsilon :string-set) []
     (:opt :plus :star :look :neg :rep) (recur (:parser parser))
     (:alt :cat) (mapcat seq-nt (:parsers parser))
     :ord (mapcat seq-nt 
