@@ -75,8 +75,8 @@
 
 (defn string-set
   "Create a specialized parser to handle sets of terminals from a set of strings"
-  [ss]
-  {:tag :string-set :string-set ss})
+  [ss ss-name]
+  {:tag :string-set :string-set ss :ss-name ss-name})
 
 (defn look "Lookahead, i.e., &parser" 
   [parser] 

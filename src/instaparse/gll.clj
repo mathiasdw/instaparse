@@ -28,15 +28,15 @@
   
   )
     
-(def DEBUG true)
-(def PRINT true)
+(def DEBUG false)
+(def PRINT false)
 (defmacro debug [& body]
   (when DEBUG
     `(do ~@body)))
 (defmacro dprintln [& body]  
   (when PRINT `(println ~@body)))
 (defmacro dpprint [& body]  
-  (when PRINT `(print ~@body)))
+  (when PRINT `(pprint ~@body)))
 
 
 (debug (def stats (atom {})))
@@ -545,12 +545,13 @@
   "For each of the set items that start at the index in the input, push a string parser"
   [this index tramp]
   (let [ss (:string-set this)
+        ss-name (:ss-name this)
         text (:text tramp)
         prefix-strings (map #(subs text index %1) (range (inc index) (inc (count text)))) 
         prefix-matches (filter #(ss %1) prefix-strings)]
     (if (empty? prefix-matches)
       (fail tramp [index this] index
-            {:tag :string-set :expecting "THENAMEOFTHESET"})
+            {:tag :string-set :expecting ss-name})
       (:else 
         (doseq [ps prefix-matches]
           (push-listener tramp [index (string ps)] (NodeListener [index this] tramp)))))))
@@ -559,12 +560,13 @@
   "For each of the set items that start at the index in the input, push a string parser"
   [this index tramp]
   (let [ss (:string-set this)
+        ss-name (:ss-name this)
         text (:text tramp)
         prefix-strings (map #(subs text index %1) (range (inc index) (inc (count text)))) 
         prefix-matches (filter #(ss %1) prefix-strings)]
     (if (empty? prefix-matches)
       (fail tramp [index this] index
-            {:tag :string-set :expecting "THENAMEOFTHESET" :full true})
+            {:tag :string-set :expecting ss-name :full true})
       (:else 
         (doseq [ps prefix-matches]
           (push-full-listener tramp [index (string ps)] (NodeListener [index this] tramp)))))))
